@@ -25,12 +25,19 @@ class Application(QWidget):
         file_select_bytton = QPushButton('Select file', self)
         file_select_bytton.resize(file_select_bytton.sizeHint())
         file_select_bytton.move(300, 5)
-
         file_select_bytton.clicked.connect(lambda: self.selectFile()) 
+        
+        home_button = QPushButton('Home', self)
+        home_button.resize(home_button.sizeHint())
+        home_button.clicked.connect(lambda: self.cameraToHome())         
+        
         grid = QGridLayout()
         grid.addWidget(file_label,1,0)
         grid.addWidget(self.filePath,1,1)
         grid.addWidget(file_select_bytton,1,2)
+        grid.addWidget(home_button,2,0)
+        
+        
         verticalLayout = QVBoxLayout()
         verticalLayout.setSpacing(0)
         graph_drawer = GraphDrawer()
@@ -50,6 +57,13 @@ class Application(QWidget):
                 self.graphWidget.points_labels[idx].hide();
             self.graphWidget.points_labels.clear();
         self.graphWidget.initLabels()   
+    
+    def cameraToHome(self):
+        if self.graphWidget.graph:
+            self.graphWidget.zoom=1
+            self.graphWidget.delta=QPoint(0,0)
+            self.graphWidget.start=self.graphWidget.delta
+            self.graphWidget.update()
 
 class GraphDrawer(QWidget):
     def __init__(self):
