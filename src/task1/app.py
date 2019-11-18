@@ -80,6 +80,7 @@ class Application(QWidget):
         try:
             graph = graph_from_json(self.filePath.text())
             self.graphWidget.setGraph(graph)
+            self.graphWidget.setWeightLabelsVisible(False)
         except:
            self.fileSelectError('Incorrect structure of file')
 
@@ -124,6 +125,12 @@ class GraphDrawer(QWidget):
             label.setParent(None)
         for label in self.edges_to_weights.values():
             label.setParent(None)
+
+    # TODO: add button to choose: show weights or not
+    def setWeightLabelsVisible(self, flag):
+        for label in self.edges_to_weights.values():
+            label.setVisible(flag)
+        self.update()
 
     def setGraph(self, graph):
         self.graph = graph
