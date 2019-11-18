@@ -5,7 +5,6 @@ from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QTransform
 from PyQt5.QtCore import Qt,QPoint
 from helper import graph_from_json
 
-# TODO, not save shortest edge.
 class Application(QWidget):
     def __init__(self, graph):
         super().__init__()
@@ -24,7 +23,6 @@ class Application(QWidget):
         self.pressing = False
 
     def initUI(self):
-        #self.showMaximized()
         self.setGeometry(500, 500, self.width() // 2, self.height() // 2)
         self.setWindowTitle('Graph visualization')
         self.show()
@@ -70,11 +68,11 @@ class Application(QWidget):
             painter.drawEllipse(x - r // 2, y - r // 2, r, r)
             lbl = self.points_labels[idx]
             font = lbl.font()
-            font.setPointSize(font_size)
+            font.setPointSize(font_size*self.zoom)
             lbl.setFont(font)
             lbl.adjustSize()
-            self.points_labels[idx].move(self.zoom*(x - lbl.width() // 2 + self.delta.x()), self.zoom*(y - lbl.height() // 2+self.delta.y()))
-                  
+            self.points_labels[idx].move(self.zoom*(x -r/5 + self.delta.x()), self.zoom*(y-r/5+self.delta.y()))
+                              
         painter.end()
 
 
@@ -83,10 +81,8 @@ class Application(QWidget):
         self.update()
         
     def mousePressEvent(self, QMouseEvent):
-        #the pos of the widget when you first pressed it.
         self.start = QMouseEvent.pos()-self.delta
         self.beg_pos=[self.start.x(),self.start.y()]
-        #to make sure you are holding mouse button down
         self.pressing = True
 
     def mouseMoveEvent(self, QMouseEvent):
@@ -106,9 +102,9 @@ if __name__ == '__main__':
         sys.exit(0)
     filename = sys.argv[1]
 
-
     app = QApplication(sys.argv)
     graph = graph_from_json(filename)
     win = Application(graph)
     win.resize(500,500)
     sys.exit(app.exec_())
+    
