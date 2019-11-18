@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QFileDialog, QPushBu
                              QVBoxLayout)
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
-from helper import graph_from_json
+from utils import graph_from_json
 
 
 class Application(QWidget):
@@ -17,6 +17,7 @@ class Application(QWidget):
         self.setGeometry(500, 500, 1000, 800)
         file_label = QLabel("file", self)
         file_label.resize(file_label.sizeHint())
+
         # why
         file_label.move(20, 5)
         file_label.setToolTip('end file ')
@@ -25,6 +26,7 @@ class Application(QWidget):
         self.filePath.resize(self.filePath.sizeHint())
         self.filePath.move(120, 5)
         self.filePath.setToolTip('Select file')
+
         # const size bad
         file_select_button = QPushButton('Select file', self)
         file_select_button.resize(file_select_button.sizeHint())
@@ -85,12 +87,13 @@ class GraphDrawer(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(500, 500, self.width() // 2, self.height() // 2)
+        # self.setGeometry(500, 500, self.width() // 2, self.height() // 2)
         self.setWindowTitle('Graph visualization')
         self.show()
 
     def initLabels(self):
-        for idx in self.graph.points:
+        for point in self.graph.points:
+            idx = point.idx
             self.points_labels[idx] = QLabel(str(idx), self)
             self.points_labels[idx].show()
 
@@ -108,7 +111,7 @@ class GraphDrawer(QWidget):
             y_coef = self.height() - 2 * self.padding
             pos = self.graph.pos
 
-            for edge in self.graph.edges.values():
+            for edge in self.graph.edges:
                 p1, p2 = edge.points
                 painter.drawLine(
                     pos[p1][0] * x_coef + self.padding,

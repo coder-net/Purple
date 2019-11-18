@@ -7,7 +7,6 @@ from dataclasses import dataclass
 @dataclass
 class Point:
     idx: int
-    post_idx: int
 
 
 @dataclass
@@ -19,13 +18,13 @@ class Edge:
 
 class Graph:
     def __init__(self, points, edges, name='Untitled'):
-        self.points = {point['idx']: Point(point['idx'], point['post_idx']) for point in points}
-        self.edges = {e['idx']: Edge(e['idx'], e['length'], e['points']) for e in edges}
+        self.points = [Point(point['idx']) for point in points]
+        self.edges = [Edge(e['idx'], e['length'], e['points']) for e in edges]
         self.name = name
-        self.nxgraph = Graph.init_nxgraph(self.points.values(), self.edges.values())
+        self.nxgraph = Graph.init_nxgraph(self.points, self.edges)
         self.pos = Graph.normalize_pos(Graph.choose_layout(self.nxgraph))
         self.shortest_edge = Graph.shortest_edge(self.pos)
-        self.biggest_idx = Graph.biggest_idx(self.points.keys())
+        self.biggest_idx = Graph.biggest_idx(self.points)
 
     @staticmethod
     def choose_layout(g):
@@ -82,7 +81,7 @@ class Graph:
 
     @staticmethod
     def biggest_idx(points):
-        return max(points)
+        return max(points, key=lambda p: p.idx).idx
 
     @staticmethod
     def _distance(x1, y1, x2, y2):
@@ -105,7 +104,7 @@ def parse_to_dict(obj):
     else:
         raise TypeError(f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
 
-# TODO, error handling
+
 def graph_from_json(filename):
     with open(filename) as f:
         return json.load(f, object_hook=parse_from_dict)
