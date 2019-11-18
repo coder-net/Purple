@@ -24,7 +24,7 @@ class Graph:
         self.nxgraph = Graph.init_nxgraph(self.points, self.edges)
         self.pos = Graph.normalize_pos(Graph.choose_layout(self.nxgraph))
         self.shortest_edge = Graph.shortest_edge(self.pos)
-        self.biggest_idx = Graph.biggest_idx(self.points)
+        self.biggest_idx_len = Graph.biggest_idx_len(self.points)
 
     @staticmethod
     def choose_layout(g):
@@ -80,8 +80,8 @@ class Graph:
         return shortest
 
     @staticmethod
-    def biggest_idx(points):
-        return max(points, key=lambda p: p.idx).idx
+    def biggest_idx_len(points):
+        return len(str(max(points, key=lambda p: p.idx).idx))
 
     @staticmethod
     def _distance(x1, y1, x2, y2):
