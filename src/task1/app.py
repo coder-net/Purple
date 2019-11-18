@@ -1,6 +1,5 @@
 import sys
 import os.path
-from json import JSONDecodeError
 from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QFileDialog,
                              QPushButton, QLineEdit, QGridLayout,
                              QVBoxLayout, QDesktopWidget)
@@ -94,6 +93,7 @@ class GraphDrawer(QWidget):
         self.graph = None
         self.padding = 50
         self.points_to_labels = {}
+        self.edges_to_weights = {}
         self.zoom = 1
         self.delta = QPoint(0, 0)
         self.start = self.delta
@@ -112,12 +112,17 @@ class GraphDrawer(QWidget):
 
     def initLabels(self):
         for point in self.graph.points:
-            idx = point.idx
-            self.points_to_labels[idx] = CustomLabel(str(idx), self)
-            self.points_to_labels[idx].show()
+            self.points_to_labels[point.idx] = CustomLabel(str(point.idx), self)
+            self.points_to_labels[point.idx].show()
+        color = self.palette().color(self.backgroundRole()).name()
+        for edge in self.graph.edges:
+            self.edges_to_weights[edge.idx] = CustomLabel(str(edge.weight), self, color)
+            self.edges_to_weights[edge.idx].show()
 
     def deleteLabels(self):
         for label in self.points_to_labels.values():
+            label.setParent(None)
+        for label in self.edges_to_weights.values():
             label.setParent(None)
 
     def setGraph(self, graph):
@@ -136,21 +141,10 @@ class GraphDrawer(QWidget):
             self.delta.setX = self.start.x()
             self.delta.setY = self.start.y()
 
+            # how scale normalized coordinates
             map_x = self.width() - 2 * self.padding
             map_y = self.height() - 2 * self.padding
             pos = self.graph.pos
-
-            for edge in self.graph.edges:
-                p1, p2 = edge.points
-                painter.drawLine(
-                    pos[p1][0] * map_x + self.padding,
-                    pos[p1][1] * map_y + self.padding,
-                    pos[p2][0] * map_x + self.padding,
-                    pos[p2][1] * map_y + self.padding
-                )
-
-            painter.setBrush(QBrush(Qt.gray))
-            painter.setPen(QPen(Qt.gray))
 
             # choose suitable node size
             d = min(int(self.padding * 1.5), int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
@@ -159,6 +153,25 @@ class GraphDrawer(QWidget):
             # qlabel's font size must be greater than 0
             if font_size <= 0:
                 font_size = 1
+
+            for edge in self.graph.edges:
+                p1, p2 = edge.points
+                x1, y1, x2, y2 = (
+                    pos[p1][0] * map_x + self.padding,
+                    pos[p1][1] * map_y + self.padding,
+                    pos[p2][0] * map_x + self.padding,
+                    pos[p2][1] * map_y + self.padding
+                )
+                painter.drawLine(x1, y1, x2, y2)
+                lbl = self.edges_to_weights[edge.idx]
+                lbl.setFontSize(font_size)
+                lbl.move(
+                    self.zoom * (x1 + (x2 - x1) // 2 + self.delta.x()) - lbl.width() // 2,
+                    self.zoom * (y1 + (y2 - y1) // 2 + self.delta.y()) - lbl.height() // 2
+                )
+
+            painter.setBrush(QBrush(Qt.gray))
+            painter.setPen(QPen(Qt.gray))
 
             for idx, (x, y) in pos.items():
                 x = int(x * map_x) + self.padding
@@ -190,8 +203,10 @@ class GraphDrawer(QWidget):
 
 
 class CustomLabel(QLabel):
-    def __init__(self, text, parent):
+    def __init__(self, text, parent, background_color=None):
         super().__init__(text, parent)
+        if background_color:
+            self.setStyleSheet(f"QLabel {{background-color: {background_color};}}")
 
     def setFontSize(self, font_size):
         font = self.font()
