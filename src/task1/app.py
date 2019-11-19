@@ -21,43 +21,59 @@ class Application(QWidget):
 
         file_label = QLabel("filename:", self)
         file_label.resize(file_label.sizeHint())
-
-        file_label.move(20, 5)
-        file_label.setToolTip('end file ')
         self.filePath = QLineEdit("Select file", self)
         self.filePath.setObjectName("file")
         self.filePath.resize(self.filePath.sizeHint())
-        self.filePath.move(120, 5)
         self.filePath.setToolTip('Select file')
-
+        
+        self.error_label = QLabel("", self)
+        self.error_label.resize(file_label.sizeHint())
+        self.error_label.hide()
         file_select_button = QPushButton('Select file', self)
         file_select_button.resize(file_select_button.sizeHint())
-        file_select_button.move(300, 5)
-
+        
+ 
+        
         home_button = QPushButton('Home', self)
         home_button.resize(home_button.sizeHint())
 
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(10)
-        grid.addWidget(file_label, 1, 1)
-        grid.addWidget(self.filePath, 1, 2)
-        grid.addWidget(file_select_button, 1, 3)
-        grid.addWidget(home_button, 1, 0)
-
-        verticalLayout = QVBoxLayout()
-        verticalLayout.setSpacing(0)
+        weight_visibler_button = QPushButton('Show/Hide weight', self)
+        weight_visibler_button.resize(weight_visibler_button.sizeHint())
+        
+        load_status_layout = QVBoxLayout()
+        load_status_layout.setSpacing(0)        
+        load_status_layout.addWidget(self.filePath)
+        load_status_layout.addWidget(self.error_label)       
+        
+        tools_grid = QGridLayout()
+        tools_grid.setHorizontalSpacing(10)
+        tools_grid.addWidget(file_label, 1 ,0)
+        tools_grid.addLayout(load_status_layout, 1, 1)
+        tools_grid.addWidget(file_select_button, 1, 2)
+        tools_grid.addWidget(home_button, 2, 0)
+        tools_grid.addWidget(weight_visibler_button, 3, 0)
+        
+        main_layout = QVBoxLayout()
+        main_layout.setSpacing(0)
         graph_drawer = GraphDrawer()
         graph_drawer.resize(500, 500)
         self.graphWidget = graph_drawer
-        verticalLayout.addLayout(grid)
-        verticalLayout.addWidget(self.graphWidget)
-        self.setLayout(verticalLayout)
+        main_layout.addLayout(tools_grid)
+        main_layout.addWidget(self.graphWidget)
+        self.setLayout(main_layout)
 
         home_button.clicked.connect(self.graphWidget.cameraToHome)
         file_select_button.clicked.connect(self.selectFile)
-
+        weight_visibler_button.clicked.connect(self.changeWieghtVisibility)
         self.show()
 
+    def changeWieghtVisibility(self):
+        if self.graphWidget.graph :
+            self.graphWidget.setWeightLabelsVisible(not self.graphWidget.is_visible_weight)
+            
+            
+            
+        
     def toCenter(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
@@ -67,9 +83,9 @@ class Application(QWidget):
     # TODO, error handing, if file not chosen
     def selectFile(self):
         self.filePath.setText(QFileDialog.getOpenFileName()[0])
+        self.error_label.hide()
         filename = self.filePath.text()
         if not os.path.isfile(filename):
-            self.fileSelectError('No such file')
             return
 
         _, extension = os.path.splitext(filename)
@@ -79,13 +95,14 @@ class Application(QWidget):
 
         try:
             graph = graph_from_json(self.filePath.text())
-            self.graphWidget.setGraph(graph)
             self.graphWidget.setWeightLabelsVisible(False)
+            self.graphWidget.setGraph(graph)
         except:
-           self.fileSelectError('Incorrect structure of file')
+            self.fileSelectError('Incorrect structure of file')
 
     def fileSelectError(self, msg):
-        self.filePath.setText(msg)
+        self.error_label.show()
+        self.error_label.setText(msg)
 
 
 class GraphDrawer(QWidget):
@@ -98,6 +115,7 @@ class GraphDrawer(QWidget):
         self.zoom = 1
         self.delta = QPoint(0, 0)
         self.start = self.delta
+        self.is_visible_weight=False
         self.pressing = False
         self.initUI()
 
@@ -123,11 +141,16 @@ class GraphDrawer(QWidget):
     def deleteLabels(self):
         for label in self.points_to_labels.values():
             label.setParent(None)
+            label.hide()
+        self.points_to_labels.clear()
         for label in self.edges_to_weights.values():
-            label.setParent(None)
+            label.setParent(None)            
+            label.hide()
+        self.edges_to_weights.clear()
 
-    # TODO: add button to choose: show weights or not
+
     def setWeightLabelsVisible(self, flag):
+        self.is_visible_weight = flag
         for label in self.edges_to_weights.values():
             label.setVisible(flag)
         self.update()
@@ -136,6 +159,7 @@ class GraphDrawer(QWidget):
         self.graph = graph
         self.deleteLabels()
         self.initLabels()
+        self.is_visible_weight=True
         self.update()
 
     def paintEvent(self, e):
