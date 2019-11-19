@@ -201,20 +201,15 @@ class GraphDrawer(QWidget):
                     self.zoom * (y1 + (y2 - y1) // 2 + self.delta.y()) - lbl.height() // 2
                 )
                 
-            r=d/self.zoom
-            if r<1:
-                r=1
-            if r>10000:
-                r=d
                 
             painter.setBrush(QBrush(Qt.gray))
             painter.setPen(QPen(Qt.gray))
             for idx, (x, y) in pos.items():
                 x = int(x * map_x) + self.padding
                 y = int(y * map_y) + self.padding
-                painter.drawEllipse(x - r // 2, y - r // 2, r, r)
+                painter.drawEllipse(x - d // 2, y- d // 2, d, d)
                 lbl = self.points_to_labels[idx]
-                lbl.setFontSize(font_size)
+                lbl.setFontSize(font_size*self.zoom)
                 lbl.move(self.zoom * (x + self.delta.x()) - lbl.width() // 2,
                          self.zoom * (y + self.delta.y()) - lbl.height() // 2)
 
