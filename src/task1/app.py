@@ -136,6 +136,7 @@ class GraphDrawer(QWidget):
         color = self.palette().color(self.backgroundRole()).name()
         for edge in self.graph.edges:
             self.edges_to_weights[edge.idx] = CustomLabel(str(edge.weight), self, color)
+            self.edges_to_weights[edge.idx].lower()
             self.edges_to_weights[edge.idx].show()
 
     def deleteLabels(self):
