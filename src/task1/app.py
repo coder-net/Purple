@@ -178,13 +178,16 @@ class GraphDrawer(QWidget):
             # choose suitable node size
             d = min(int(self.padding * 1.5), int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
             # choose suitable font size
-            font_size = int(1 / self.graph.biggest_idx_len * d)
+            weight_font_size = int(1 / self.graph.biggest_idx_len * d)
+            node_font_size = int(1 / self.graph.biggest_idx_len * d * self.zoom)
             # qlabel's font size must be greater than 0
-            if font_size <= 0:
-                font_size = 1
-                
-            painter.setPen(QPen(Qt.black,1/self.zoom))
-            
+            if weight_font_size <= 0:
+                weight_font_size = 1
+                if node_font_size <= 0:
+                    node_font_size = 1
+
+            painter.setPen(QPen(Qt.black, 1 / self.zoom))
+
             for edge in self.graph.edges:
                 p1, p2 = edge.points
                 x1, y1, x2, y2 = (
@@ -195,21 +198,20 @@ class GraphDrawer(QWidget):
                 )
                 painter.drawLine(x1, y1, x2, y2)
                 lbl = self.edges_to_weights[edge.idx]
-                lbl.setFontSize(font_size)
+                lbl.setFontSize(weight_font_size)
                 lbl.move(
                     self.zoom * (x1 + (x2 - x1) // 2 + self.delta.x()) - lbl.width() // 2,
                     self.zoom * (y1 + (y2 - y1) // 2 + self.delta.y()) - lbl.height() // 2
                 )
-                
-                
+
             painter.setBrush(QBrush(Qt.gray))
             painter.setPen(QPen(Qt.gray))
             for idx, (x, y) in pos.items():
                 x = int(x * map_x) + self.padding
                 y = int(y * map_y) + self.padding
-                painter.drawEllipse(x - d // 2, y- d // 2, d, d)
+                painter.drawEllipse(x - d // 2, y - d // 2, d, d)
                 lbl = self.points_to_labels[idx]
-                lbl.setFontSize(font_size*self.zoom)
+                lbl.setFontSize(node_font_size)
                 lbl.move(self.zoom * (x + self.delta.x()) - lbl.width() // 2,
                          self.zoom * (y + self.delta.y()) - lbl.height() // 2)
 
