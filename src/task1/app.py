@@ -2,7 +2,7 @@ import sys
 import os.path
 from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QFileDialog,
                              QPushButton, QLineEdit, QGridLayout,
-                             QVBoxLayout, QDesktopWidget)
+                             QVBoxLayout, QHBoxLayout, QDesktopWidget)
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
 from utils import graph_from_json
@@ -25,34 +25,38 @@ class Application(QWidget):
         self.filePath.setObjectName("file")
         self.filePath.resize(self.filePath.sizeHint())
         self.filePath.setToolTip('Select file')
-        
+
         self.error_label = QLabel("", self)
         self.error_label.resize(file_label.sizeHint())
         self.error_label.hide()
         file_select_button = QPushButton('Select file', self)
         file_select_button.resize(file_select_button.sizeHint())
-        
- 
-        
+
         home_button = QPushButton('Home', self)
         home_button.resize(home_button.sizeHint())
 
         weight_visibler_button = QPushButton('Show/Hide weight', self)
         weight_visibler_button.resize(weight_visibler_button.sizeHint())
-        
+
         load_status_layout = QVBoxLayout()
-        load_status_layout.setSpacing(0)        
+        load_status_layout.setSpacing(0)
         load_status_layout.addWidget(self.filePath)
-        load_status_layout.addWidget(self.error_label)       
-        
+        load_status_layout.addWidget(self.error_label)
+
         tools_grid = QGridLayout()
         tools_grid.setHorizontalSpacing(10)
-        tools_grid.addWidget(file_label, 1 ,0)
+        tools_grid.setVerticalSpacing(5)
+        tools_grid.addWidget(file_label, 1, 0)
         tools_grid.addLayout(load_status_layout, 1, 1)
         tools_grid.addWidget(file_select_button, 1, 2)
+
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.setSpacing(10)
+        horizontal_layout.addWidget(home_button)
+        horizontal_layout.addWidget(weight_visibler_button)
         tools_grid.addWidget(home_button, 2, 0)
-        tools_grid.addWidget(weight_visibler_button, 3, 0)
-        
+        tools_grid.addWidget(weight_visibler_button, 2, 2)
+
         main_layout = QVBoxLayout()
         main_layout.setSpacing(0)
         graph_drawer = GraphDrawer()
@@ -64,23 +68,19 @@ class Application(QWidget):
 
         home_button.clicked.connect(self.graphWidget.cameraToHome)
         file_select_button.clicked.connect(self.selectFile)
-        weight_visibler_button.clicked.connect(self.changeWieghtVisibility)
+        weight_visibler_button.clicked.connect(self.changeWeightVisibility)
         self.show()
 
-    def changeWieghtVisibility(self):
-        if self.graphWidget.graph :
+    def changeWeightVisibility(self):
+        if self.graphWidget.graph:
             self.graphWidget.setWeightLabelsVisible(not self.graphWidget.is_visible_weight)
-            
-            
-            
-        
+
     def toCenter(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    # TODO, error handing, if file not chosen
     def selectFile(self):
         self.filePath.setText(QFileDialog.getOpenFileName()[0])
         self.error_label.hide()
@@ -115,7 +115,7 @@ class GraphDrawer(QWidget):
         self.zoom = 1
         self.delta = QPoint(0, 0)
         self.start = self.delta
-        self.is_visible_weight=False
+        self.is_visible_weight = False
         self.pressing = False
         self.initUI()
 
@@ -141,13 +141,10 @@ class GraphDrawer(QWidget):
     def deleteLabels(self):
         for label in self.points_to_labels.values():
             label.setParent(None)
-            label.hide()
         self.points_to_labels.clear()
         for label in self.edges_to_weights.values():
-            label.setParent(None)            
-            label.hide()
+            label.setParent(None)
         self.edges_to_weights.clear()
-
 
     def setWeightLabelsVisible(self, flag):
         self.is_visible_weight = flag
@@ -159,7 +156,7 @@ class GraphDrawer(QWidget):
         self.graph = graph
         self.deleteLabels()
         self.initLabels()
-        self.is_visible_weight=True
+        self.is_visible_weight = True
         self.update()
 
     def paintEvent(self, e):

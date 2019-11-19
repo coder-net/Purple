@@ -30,10 +30,8 @@ class Graph:
     def choose_layout(g):
         methods = [
             nx.layout.spectral_layout,
-            nx.layout.circular_layout,
             nx.layout.fruchterman_reingold_layout,
             nx.kamada_kawai_layout,
-            #nx.layout.planar_layout,
             nx.layout.spiral_layout,
         ]
         min_dist = -1
