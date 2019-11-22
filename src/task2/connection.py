@@ -1,5 +1,7 @@
 import socket
 import enum
+import json
+from os import strerror
 
 
 class Action(enum.Enum):
@@ -24,23 +26,25 @@ class Result(enum.Enum):
     TIMEOUT = 5
     INTERNAL_SERVER_ERROR = 500
 
-    # def __int__(self):
-    #     return self.value
-
 class Connector:
+    int_size = 4
+    encoding = "utf-8"
+
     def __init__(self, SERVER_ADDR="wgforge-srv.wargaming.net", SERVER_PORT=443):
         self.SERVER_ADDR = SERVER_ADDR
         self.SERVER_PORT = SERVER_PORT
         self.socket = socket.socket()
-        self.int_size = 4
-        self.encoding = "utf-8"
 
+    # TODO, EISCONN handling
     def connect(self):
-        self.socket.connect((self.SERVER_ADDR, self.SERVER_PORT))
+        code = self.socket.connect_ex((self.SERVER_ADDR, self.SERVER_PORT))
+        if code not in (0, socket.errno.EISCONN):
+            raise socket.error(code, strerror(code))
 
     def close(self):
         self.socket.close()
 
+    # TODO, recv ints
     def receive(self):
         result = Result(__class__.to_int(self.receive_part(self.int_size)))
         data_len = __class__.to_int(self.receive_part(self.int_size))
@@ -56,56 +60,78 @@ class Connector:
         return int(num).to_bytes(length, byteorder=byteorder, signed=signed)
 
     def receive_part(self, msg_length):
-        data = []
+        data = bytearray(msg_length)
+        mem = memoryview(data)
         while msg_length > 0:
-            data.append(self.socket.recv(msg_length))
-            msg_length -= len(data[-1])
-        return b"".join(data)
+            msg_length -= self.socket.recv_into(mem, msg_length)
+            mem = mem[-msg_length:]
+        return data
 
     def send(self, action, data=""):
         action_code = __class__.from_int(int(action))
         data_bytes = data.encode(self.encoding)
         length_code = __class__.from_int(len(data_bytes))
-        msg = action_code + length_code + data_bytes
-        self.socket.send(msg)
+        msg = b"".join((action_code, length_code, data_bytes))
+        self.socket.sendall(msg)
+
+class RequestHandler:
+    dumps_compact = json.JSONEncoder(separators=(",", ":")).encode
+
+    def __init__(self, connector=Connector()):
+        self.connector = connector
+
+    def login(self, name, **options):
+        self.connector.connect()
+        options.update(name=name)
+        self.connector.send(Action.LOGIN, self.dumps_compact(options))
+        msg = self.connector.receive()
+        if msg[0] is not Result.OKEY:
+            return msg
+        
+
+    def logout(self):
+        self.connector.send(Action.LOGOUT)
+        msg = self.connector.receive()
+        self.connector.close()
+        return msg
+
+    def get_point_info(self, idx):
+        pass
 
 
-def main():
+def connector_demonstration():
     try:
-        import json
-
         def to_json(obj):
             return json.dumps(obj, separators=(",", ":"))
+
+        def print_result(action, msg, sep=" "):
+            print(f"{action.name} {msg[0].name}:{sep}{msg[1]}")
 
         cn = Connector()
         cn.connect()
 
         cn.send(Action.LOGIN, to_json({"name": "Phoebus"}))
         msg = cn.receive()
-        print(f"{msg[0]}: ")
-        print(msg[1])
+        print_result(Action.LOGIN, msg, "\n")
         
         cn.send(Action.MAP, to_json({"layer": 0}))
         msg = cn.receive()
-        print(f"{msg[0]}: ")
-        print(msg[1])
+        print_result(Action.MAP, msg, "\n")
 
         cn.send(Action.MAP, to_json({"layer": 1}))
         msg = cn.receive()
-        print(f"{msg[0]}: ")
-        print(msg[1])
+        print_result(Action.MAP, msg, "\n")
 
         cn.send(Action.MAP, to_json({"layer": 10}))
         msg = cn.receive()
-        print(f"{msg[0]}: ")
-        print(msg[1])
+        print_result(Action.MAP, msg, "\n")
 
         cn.send(Action.LOGOUT)
         msg = cn.receive()
-        print(f"LOGOUT: {msg}")
+        print_result(Action.LOGOUT, msg)
     finally:
         cn.close()
 
 
 if __name__ == "__main__":
-    main()
+    connector_demonstration()
