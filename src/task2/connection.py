@@ -43,6 +43,20 @@ class Connector:
 
     def close(self):
         self.socket.close()
+    
+    def request(self, action, *data):
+        """
+        Sends request to the server and gets and return response.
+
+        Parameters:
+            action: Action instance
+            data[0]: data in JSON 
+        Returns:
+            (result, response): Result instance and response data in JSON
+        """
+        self.send(action, *data)
+        response = self.connector.receive()
+        return response
 
     # TODO, recv ints
     def receive(self):
