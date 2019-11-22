@@ -1,11 +1,7 @@
 import socket
 import enum
 import json
-<<<<<<< HEAD
-from os import strerror
 
-=======
->>>>>>> Ability of connection to server by name and showing map
 
 encode_compact = json.JSONEncoder(separators=(",", ":")).encode
 
@@ -44,7 +40,6 @@ class Connector:
                 server_configuration = json.load(json_data)
                 SERVER_ADDR=server_configuration["SERVER_ADDRESS"]
                 SERVER_PORT=server_configuration["SERVER_PORT"]              
-                
         self.SERVER_ADDR = SERVER_ADDR
         self.SERVER_PORT = SERVER_PORT
         self.socket = None
@@ -52,6 +47,7 @@ class Connector:
     def __bool__(self):
         return self.socket is not None
 
+    # TODO, EISCONN handling
     def connect(self):
         if not self:
             self.socket = socket.socket()
@@ -190,5 +186,5 @@ def send_some_requests():
 
 
 if __name__ == "__main__":
-    # connector_demonstration()
+    connector_demonstration()
     send_some_requests()
