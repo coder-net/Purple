@@ -1,6 +1,6 @@
 import socket
 import enum
-
+import json
 
 class Action(enum.Enum):
     LOGIN = 1
@@ -28,7 +28,14 @@ class Result(enum.Enum):
     #     return self.value
 
 class Connector:
-    def __init__(self, SERVER_ADDR="wgforge-srv.wargaming.net", SERVER_PORT=443):
+    
+    def __init__(self, SERVER_ADDR=None, SERVER_PORT=None):
+        if SERVER_ADDR == SERVER_PORT == None:
+            with open("server_config.json") as json_data:
+                server_configuration = json.load(json_data)
+                SERVER_ADDR=server_configuration["SERVER_ADDRESS"]
+                SERVER_PORT=server_configuration["SERVER_PORT"]              
+                
         self.SERVER_ADDR = SERVER_ADDR
         self.SERVER_PORT = SERVER_PORT
         self.socket = socket.socket()
@@ -69,7 +76,6 @@ class Connector:
         msg = action_code + length_code + data_bytes
         self.socket.send(msg)
 
-
 def main():
     try:
         import json
@@ -80,7 +86,7 @@ def main():
         cn = Connector()
         cn.connect()
 
-        cn.send(Action.LOGIN, to_json({"name": "Phoebus"}))
+        cn.send(Action.LOGIN, to_json({"name": "Charon"}))
         msg = cn.receive()
         print(f"{msg[0]}: ")
         print(msg[1])
