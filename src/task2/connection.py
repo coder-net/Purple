@@ -1,8 +1,11 @@
 import socket
 import enum
 import json
+<<<<<<< HEAD
 from os import strerror
 
+=======
+>>>>>>> Ability of connection to server by name and showing map
 
 encode_compact = json.JSONEncoder(separators=(",", ":")).encode
 
@@ -35,7 +38,13 @@ class Connector:
     int_size = 4
     encoding = "utf-8"
 
-    def __init__(self, SERVER_ADDR="wgforge-srv.wargaming.net", SERVER_PORT=443):
+    def __init__(self, SERVER_ADDR=None, SERVER_PORT=None):
+        if SERVER_ADDR == SERVER_PORT == None:
+            with open("server_config.json") as json_data:
+                server_configuration = json.load(json_data)
+                SERVER_ADDR=server_configuration["SERVER_ADDRESS"]
+                SERVER_PORT=server_configuration["SERVER_PORT"]              
+                
         self.SERVER_ADDR = SERVER_ADDR
         self.SERVER_PORT = SERVER_PORT
         self.socket = None
@@ -132,7 +141,7 @@ def connector_demonstration():
         cn = Connector()
         cn.connect()
 
-        cn.send(Action.LOGIN, to_json({"name": "Phoebus"}))
+        cn.send(Action.LOGIN, to_json({"name": "Charon"}))
         msg = cn.receive()
         print_result(Action.LOGIN, msg, "\n")
         
