@@ -4,6 +4,8 @@ import json
 from os import strerror
 
 
+encode_compact = json.JSONEncoder(separators=(",", ":")).encode
+
 class Action(enum.Enum):
     LOGIN = 1
     LOGOUT = 2
@@ -14,9 +16,6 @@ class Action(enum.Enum):
     GAMES = 7
     MAP = 10
 
-    def __int__(self):
-        return self.value
-
 class Result(enum.Enum):
     OKEY = 0
     BAD_COMMAND = 1
@@ -26,6 +25,12 @@ class Result(enum.Enum):
     TIMEOUT = 5
     INTERNAL_SERVER_ERROR = 500
 
+class ResponseError(Exception):
+    def __init__(self, result, error):
+        self.result = result
+        self.error = error
+        super().__init__(": ".join((result.name, error)))
+
 class Connector:
     int_size = 4
     encoding = "utf-8"
@@ -33,36 +38,46 @@ class Connector:
     def __init__(self, SERVER_ADDR="wgforge-srv.wargaming.net", SERVER_PORT=443):
         self.SERVER_ADDR = SERVER_ADDR
         self.SERVER_PORT = SERVER_PORT
-        self.socket = socket.socket()
+        self.socket = None
 
-    # TODO, EISCONN handling
+    def __bool__(self):
+        return self.socket is not None
+
     def connect(self):
-        code = self.socket.connect_ex((self.SERVER_ADDR, self.SERVER_PORT))
-        if code not in (0, socket.errno.EISCONN):
-            raise socket.error(code, strerror(code))
+        if not self:
+            self.socket = socket.socket()
+            self.socket.connect((self.SERVER_ADDR, self.SERVER_PORT))
 
     def close(self):
-        self.socket.close()
+        if self:
+            self.socket.close()
+            self.socket = None
     
-    def request(self, action, *data):
+    def request(self, action, data=None):
         """
         Sends request to the server and gets and return response.
 
         Parameters:
             action: Action instance
-            data[0]: data in JSON 
+            data: request data object
         Returns:
-            (result, response): Result instance and response data in JSON
+            response data object
+        Raises:
+            ResponseError: if request not valid
         """
-        self.send(action, *data)
-        response = self.connector.receive()
+        msg = (encode_compact(data),) if data is not None else ()
+        self.send(action, *msg)
+        msg = self.receive()
+        if msg[0] is not Result.OKEY:
+            raise ResponseError(msg[0], json.loads(msg[1])["error"])
+        response = json.loads(msg[1] or "null")
         return response
 
     # TODO, recv ints
     def receive(self):
-        result = Result(__class__.to_int(self.receive_part(self.int_size)))
-        data_len = __class__.to_int(self.receive_part(self.int_size))
-        data = self.receive_part(data_len).decode(self.encoding)
+        result = Result(__class__.to_int(self.receive_by_parts(self.int_size)))
+        data_len = __class__.to_int(self.receive_by_parts(self.int_size))
+        data = self.receive_by_parts(data_len).decode(self.encoding)
         return (result, data)
 
     @staticmethod
@@ -73,7 +88,7 @@ class Connector:
     def from_int(num, length=4, byteorder="little", signed=False):
         return int(num).to_bytes(length, byteorder=byteorder, signed=signed)
 
-    def receive_part(self, msg_length):
+    def receive_by_parts(self, msg_length):
         data = bytearray(msg_length)
         mem = memoryview(data)
         while msg_length > 0:
@@ -82,34 +97,27 @@ class Connector:
         return data
 
     def send(self, action, data=""):
-        action_code = __class__.from_int(int(action))
+        assert isinstance(action, Action)
+        action_code = __class__.from_int(action.value)
         data_bytes = data.encode(self.encoding)
         length_code = __class__.from_int(len(data_bytes))
         msg = b"".join((action_code, length_code, data_bytes))
         self.socket.sendall(msg)
 
 class RequestHandler:
-    dumps_compact = json.JSONEncoder(separators=(",", ":")).encode
-
     def __init__(self, connector=Connector()):
         self.connector = connector
 
     def login(self, name, **options):
-        self.connector.connect()
-        options.update(name=name)
-        self.connector.send(Action.LOGIN, self.dumps_compact(options))
-        msg = self.connector.receive()
-        if msg[0] is not Result.OKEY:
-            return msg
-        
+        pass
+
+    def player(self):
+        pass
 
     def logout(self):
-        self.connector.send(Action.LOGOUT)
-        msg = self.connector.receive()
-        self.connector.close()
-        return msg
+        pass
 
-    def get_point_info(self, idx):
+    def map(self, layer):
         pass
 
 
@@ -146,6 +154,32 @@ def connector_demonstration():
     finally:
         cn.close()
 
+def send_some_requests():
+    try:
+        cn = Connector()
+        cn.connect()
+        
+        player = cn.request(Action.LOGIN, dict(name="John"))
+        print(player.keys())
+
+        static_map = cn.request(Action.MAP, dict(layer=0))
+        print(static_map.keys())
+
+        turn = cn.request(Action.TURN)
+        print("turn:", turn)
+
+        cn.request(Action.LOGOUT)
+        print("logout")
+        cn.close()
+
+        cn.connect()
+        cn.request(Action.LOGIN, dict(name="John"))
+        l10 = cn.request(Action.MAP, dict(layer=10))
+        cn.request(Action.LOGOUT)
+    finally:
+        cn.close()
+
 
 if __name__ == "__main__":
-    connector_demonstration()
+    # connector_demonstration()
+    send_some_requests()
