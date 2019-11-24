@@ -47,7 +47,6 @@ class Connector:
     def __bool__(self):
         return self.socket is not None
 
-    # TODO, EISCONN handling
     def connect(self):
         if not self:
             self.socket = socket.socket()
@@ -186,5 +185,5 @@ def send_some_requests():
 
 
 if __name__ == "__main__":
-    connector_demonstration()
+    # connector_demonstration()
     send_some_requests()
