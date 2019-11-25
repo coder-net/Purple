@@ -36,15 +36,14 @@ class ResponseError(GameConnectionError):
 class Connector:
     int_size = 4
     encoding = "utf-8"
-
-    def __init__(self, SERVER_ADDR=None, SERVER_PORT=None):
-        if SERVER_ADDR == SERVER_PORT == None:
+    
+    def __init__(self, address: "(SERVER_ADDRESS, SERVER_PORT)" = None):
+        if address is None:
             with open("server_config.json") as json_data:
-                server_configuration = json.load(json_data)
-                SERVER_ADDR=server_configuration["SERVER_ADDRESS"]
-                SERVER_PORT=server_configuration["SERVER_PORT"]              
-        self.SERVER_ADDR = SERVER_ADDR
-        self.SERVER_PORT = SERVER_PORT
+                server_config = json.load(json_data)
+                address = server_config["SERVER_ADDRESS"], server_config["SERVER_PORT"]
+        self.SERVER_ADDR = address[0]
+        self.SERVER_PORT = address[1]
         self.socket = None
 
     def __bool__(self):
