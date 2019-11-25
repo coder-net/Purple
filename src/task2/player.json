@@ -1,0 +1,35 @@
+{
+    "home": {
+        "idx": 1,
+        "post_idx": 1
+    },
+    "idx": "71bf6d87-2b38-4f77-ad43-8f5b3aff005e",
+    "in_game": true,
+    "name": "Phoebus",
+    "rating": 0,
+    "town": {
+        "armor": 0,
+        "armor_capacity": 200,
+        "idx": 1,
+        "name": "town-one",
+        "player_idx": "71bf6d87-2b38-4f77-ad43-8f5b3aff005e",
+        "point_idx": 1,
+        "population": 1,
+        "population_capacity": 10,
+        "product": 100,
+        "product_capacity": 200,
+        "type": 1
+    },
+    "trains": [
+        {
+            "goods": 0,
+            "goods_capacity": 40,
+            "goods_type": null,
+            "idx": 1,
+            "line_idx": 1,
+            "player_idx": "71bf6d87-2b38-4f77-ad43-8f5b3aff005e",
+            "position": 0,
+            "speed": 0
+        }
+    ]
+}
