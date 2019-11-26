@@ -86,13 +86,13 @@ class Graph:
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
 
-def parse_from_dict(d):
+def parse_map_from_dict(d):
     if 'points' in d and 'lines' in d and 'name' in d:
         return Graph(d['points'], d['lines'], d['name'])
     return d
 
 
-def parse_to_dict(obj):
+def parse_map_to_dict(obj):
     if isinstance(obj, Graph):
         d = dict()
         d['points'] = obj.points
@@ -105,10 +105,13 @@ def parse_to_dict(obj):
 
 def graph_from_json_file(filename):
     with open(filename) as f:
-        return json.load(f, object_hook=parse_from_dict)
+        return json.load(f, object_hook=parse_map_from_dict)
     
 def graph_from_json_string(json_data):
-        return json.loads(json_data, object_hook=parse_from_dict)
+    return json.loads(json_data, object_hook=parse_map_from_dict)
+
+def buildings_from_json_string(json_data):
+    return json.loads(json_data)
 
 def graph_to_json(obj, filename):
     with open(filename) as f:

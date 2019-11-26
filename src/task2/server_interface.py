@@ -26,7 +26,7 @@ class serverInterface:
                 msg = self.opened_connection.receive()   
                 #msg[0] result check need
                 status_result=msg[0]
-                return ''.join(msg[1:])         
+                return ''.join(msg[1:])     
             
     def __del__(self):
-        self.closeConnection()    
+        self.closeConnection()   
