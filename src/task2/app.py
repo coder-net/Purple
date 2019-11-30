@@ -139,27 +139,31 @@ class LegendDrawer(QWidget):
         painter.setPen(QPen(Qt.red, 2))
         painter.drawLine(QPoint(0, 0), QPoint(0, self.size().height()))
         painter.setPen(QPen(Qt.black, 1))
-        for i in range(len(self.points)):
+        i=0
+        for building_type in buildings_color_by_type:
             point = self.points[i]
             x = point.x()
             y = point.y()
-            painter.setBrush(QBrush(buildings_color_by_type[i][1]))
+            painter.setBrush(QBrush(buildings_color_by_type[building_type]))
             painter.drawEllipse(x - self.r, y - self.r, 2 * self.r, 2 * self.r)
+            i+=1
         painter.end()
 
     def initLabels(self):
         spacing = 10
         delta_x = self.r + spacing
         delta_y = delta_x + self.r  # if you change delta_x set delta_y = 2*self.r+spacing
-        for i in range(len(buildings_color_by_type)):
+        i=0
+        for building_type in buildings_color_by_type:
             y = (i + 1) * delta_y
             self.points.append(QPoint(delta_x, y))
             self.labels.append(
                 CustomLabel(
-                    buildings_color_by_type[i][0],
+                    building_type,
                     self))
             self.labels[i].move(2 * delta_x, y - self.labels[i].height() / 2)
             self.labels[i].show()
+            i+=1
 
 
 if __name__ == '__main__':
