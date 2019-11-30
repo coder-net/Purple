@@ -1,12 +1,14 @@
-from PyQt5.QtWidgets import (QWidget,  QLabel,
-                              QLineEdit,)
+from PyQt5.QtWidgets import (QWidget, QLabel,
+                             QLineEdit,)
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
 
-buildings_color_by_type=[['Town',Qt.red],['Market',Qt.green],['Warehouse',Qt.darkBlue]]
+buildings_color_by_type = [['Town', Qt.red], [
+    'Market', Qt.green], ['Warehouse', Qt.darkBlue]]
+
 
 class GraphDrawer(QWidget):
-    
+
     def __init__(self):
         super().__init__()
         self.graph = None
@@ -30,17 +32,19 @@ class GraphDrawer(QWidget):
             self.delta = QPoint(0, 0)
             self.start = self.delta
             self.update()
-            
+
     def setToolTips(player):
         pass
 
     def initLabels(self):
         for point in self.graph.points:
-            self.points_to_labels[point.idx] = CustomLabel(str(point.idx), self)
+            self.points_to_labels[point.idx] = CustomLabel(
+                str(point.idx), self)
             self.points_to_labels[point.idx].show()
         color = self.palette().color(self.backgroundRole()).name()
         for edge in self.graph.edges:
-            self.edges_to_weights[edge.idx] = CustomLabel(str(edge.weight), self, color)
+            self.edges_to_weights[edge.idx] = CustomLabel(
+                str(edge.weight), self, color)
             self.edges_to_weights[edge.idx].lower()
             self.edges_to_weights[edge.idx].show()
 
@@ -64,10 +68,10 @@ class GraphDrawer(QWidget):
         self.initLabels()
         self.is_visible_weight = True
         self.update()
-    
-    def setBuildings(self,buildings):
+
+    def setBuildings(self, buildings):
         self.buildings = buildings
-        
+
     def paintEvent(self, e):
         if self.graph:
             painter = QPainter()
@@ -84,10 +88,12 @@ class GraphDrawer(QWidget):
             pos = self.graph.pos
 
             # choose suitable node size
-            d = min(int(self.padding * 1.5), int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
+            d = min(int(self.padding * 1.5),
+                    int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
             # choose suitable font size
             weight_font_size = int(1 / self.graph.biggest_idx_len * d)
-            node_font_size = int(1 / self.graph.biggest_idx_len * d * self.zoom)
+            node_font_size = int(
+                1 / self.graph.biggest_idx_len * d * self.zoom)
             # qlabel's font size must be greater than 0
             if weight_font_size <= 0:
                 weight_font_size = 1
@@ -111,16 +117,16 @@ class GraphDrawer(QWidget):
                     self.zoom * (x1 + (x2 - x1) // 2 + self.delta.x()) - lbl.width() // 2,
                     self.zoom * (y1 + (y2 - y1) // 2 + self.delta.y()) - lbl.height() // 2
                 )
-    
+
             painter.setPen(QPen(Qt.gray))
-            
+
             painter.setBrush(QBrush(Qt.gray))
 
             for idx, (x, y) in pos.items():
                 x = int(x * map_x) + self.padding
                 y = int(y * map_y) + self.padding
-    
-                self.setDrawColorForuildings(painter,idx)                
+
+                self.setDrawColorForBuildings(painter, idx)
                 painter.drawEllipse(x - d // 2, y - d // 2, d, d)
                 lbl = self.points_to_labels[idx]
                 lbl.setFontSize(node_font_size)
@@ -128,16 +134,14 @@ class GraphDrawer(QWidget):
                          self.zoom * (y + self.delta.y()) - lbl.height() // 2)
 
             painter.end()
-            
-    def setDrawColorForuildings(self,painter,idx):
-        color=Qt.gray
+
+    def setDrawColorForBuildings(self, painter, idx):
+        color = Qt.gray
         for building in self.buildings['posts']:
-            if building['idx']==idx:
-                color=buildings_color_by_type[building['type']-1][1]
-        painter.setBrush(QBrush(color)) 
-                   
-            
-            
+            if building['point_idx'] == idx:
+                color = buildings_color_by_type[building['type'] - 1][1]
+        painter.setBrush(QBrush(color))
+
     def wheelEvent(self, event):
         self.zoom += event.angleDelta().y() / 2880
         self.update()
@@ -160,7 +164,8 @@ class CustomLabel(QLabel):
     def __init__(self, text, parent, background_color=None):
         super().__init__(text, parent)
         if background_color:
-            self.setStyleSheet(f"QLabel {{background-color: {background_color};}}")
+            self.setStyleSheet(
+                f"QLabel {{background-color: {background_color};}}")
 
     def setFontSize(self, font_size):
         font = self.font()

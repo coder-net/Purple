@@ -3,13 +3,13 @@ import os.path
 import server_interface as si
 
 from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QFileDialog,
-                             QPushButton, QLineEdit, QGridLayout,QSplitter,
+                             QPushButton, QLineEdit, QGridLayout, QSplitter,
                              QVBoxLayout, QHBoxLayout, QDesktopWidget)
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
 from utils import graph_from_json_string
 from utils import buildings_from_json_string
-from graphDrawer import GraphDrawer,buildings_color_by_type,CustomLabel
+from graphDrawer import GraphDrawer, buildings_color_by_type, CustomLabel
 
 
 class Application(QWidget):
@@ -60,13 +60,13 @@ class Application(QWidget):
         graph_drawer = GraphDrawer()
         graph_drawer.resize(500, 800)
         self.graphWidget = graph_drawer
-        verticalLayout=QSplitter()
+        verticalLayout = QSplitter()
 
-        verticalLayout.addWidget(self.graphWidget)        
+        verticalLayout.addWidget(self.graphWidget)
         verticalLayout.addWidget(LegendDrawer(self))
-        verticalLayout.SetMinimumSize=(800,670)
-        tools_grid.addWidget(verticalLayout,3,0,3,3)
-        tools_grid.SetMinimumSize=(900,680)
+        verticalLayout.SetMinimumSize = (800, 670)
+        tools_grid.addWidget(verticalLayout, 3, 0, 3, 3)
+        tools_grid.SetMinimumSize = (900, 680)
         self.setLayout(tools_grid)
 
         home_button.clicked.connect(self.graphWidget.cameraToHome)
@@ -76,36 +76,37 @@ class Application(QWidget):
 
     def changeWeightVisibility(self):
         if self.graphWidget.graph:
-            self.graphWidget.setWeightLabelsVisible(not self.graphWidget.is_visible_weight)
+            self.graphWidget.setWeightLabelsVisible(
+                not self.graphWidget.is_visible_weight)
 
     def toCenter(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-    
-    def nameValidation(self,name): #TODO need to add something more
+
+    def nameValidation(self, name):  # TODO need to add something more
         return len(name) > 0
 
     def enterTheGame(self):
-        #self.nameEdit.setText(QFileDialog.getOpenFileName()[0])
+        # self.nameEdit.setText(QFileDialog.getOpenFileName()[0])
         self.error_label.hide()
         self.name = self.nameEdit.text()
         if not self.nameValidation(self.name):
             return
-        
-        self.server_interface=si.serverInterface(self.nameEdit.text())
-        
-        map_graph_json=self.server_interface.getMapLevel(0)
-        objects_map_graph_json=self.server_interface.getMapLevel(1)
+
+        self.server_interface = si.serverInterface(self.nameEdit.text())
+
+        map_graph_json = self.server_interface.getMapLevel(0)
+        objects_map_graph_json = self.server_interface.getMapLevel(1)
         #name = self.nameEdit.text()
-        #if not os.path.isfile(filename):
+        # if not os.path.isfile(filename):
         #   return
 
         #_, extension = os.path.splitext(filename)
-        #if extension != '.json':
+        # if extension != '.json':
         #    self.fileSelectError('Extension is incorrect. Must be ".json"')
-         #   return
+        #   return
 
         try:
             graph = graph_from_json_string(map_graph_json)
@@ -113,49 +114,54 @@ class Application(QWidget):
             self.graphWidget.setWeightLabelsVisible(False)
             self.graphWidget.setGraph(graph)
             self.graphWidget.setBuildings(buildings)
-        except:
+        except BaseException:
             self.error_label('Incorrect structure of recieved map file')
 
     def fileSelectError(self, msg):
         self.error_label.show()
         self.error_label.setText(msg)
 
+
 class LegendDrawer(QWidget):
-    
-    def __init__(self,main_window):
+
+    def __init__(self, main_window):
         super().__init__()
-        self.points=[]
-        self.labels=[]
-        self.main_window=main_window
-        self.r=25
+        self.points = []
+        self.labels = []
+        self.main_window = main_window
+        self.r = 25
         self.initLabels()
         self.show()
-    
+
     def paintEvent(self, e):
         painter = QPainter()
         painter.begin(self)
-        painter.setPen(QPen(Qt.red,2))
-        painter.drawLine(QPoint(0,0),QPoint(0,self.size().height()))
-        painter.setPen(QPen(Qt.black,1))
+        painter.setPen(QPen(Qt.red, 2))
+        painter.drawLine(QPoint(0, 0), QPoint(0, self.size().height()))
+        painter.setPen(QPen(Qt.black, 1))
         for i in range(len(self.points)):
             point = self.points[i]
-            x=point.x()
-            y=point.y()
+            x = point.x()
+            y = point.y()
             painter.setBrush(QBrush(buildings_color_by_type[i][1]))
-            painter.drawEllipse(x-self.r,y-self.r,2*self.r,2*self.r)
+            painter.drawEllipse(x - self.r, y - self.r, 2 * self.r, 2 * self.r)
         painter.end()
-    
-    def initLabels(self): 
-        spacing=10
-        delta_x=self.r+spacing
-        delta_y=delta_x+self.r #if you change delta_x set delta_y = 2*self.r+spacing
+
+    def initLabels(self):
+        spacing = 10
+        delta_x = self.r + spacing
+        delta_y = delta_x + self.r  # if you change delta_x set delta_y = 2*self.r+spacing
         for i in range(len(buildings_color_by_type)):
-            y=(i+1)*delta_y
-            self.points.append(QPoint(delta_x,y))
-            self.labels.append(CustomLabel(buildings_color_by_type[i][0],self))
-            self.labels[i].move(2*delta_x,y-self.labels[i].height()/2)
+            y = (i + 1) * delta_y
+            self.points.append(QPoint(delta_x, y))
+            self.labels.append(
+                CustomLabel(
+                    buildings_color_by_type[i][0],
+                    self))
+            self.labels[i].move(2 * delta_x, y - self.labels[i].height() / 2)
             self.labels[i].show()
-            
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = Application()
