@@ -1,15 +1,13 @@
 import sys
-import os.path
-import server_interface as si
-
 from PyQt5.QtWidgets import (QWidget, QApplication, QLabel, QFileDialog,
                              QPushButton, QLineEdit, QGridLayout, QSplitter,
                              QVBoxLayout, QHBoxLayout, QDesktopWidget)
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
+from server_interface import ServerInterface
 from utils import graph_from_json_string
 from utils import buildings_from_json_string
-from graphDrawer import GraphDrawer, buildings_color_by_type, CustomLabel
+from graph_drawer import GraphDrawer, buildings_color_by_type, CustomLabel
 
 
 class Application(QWidget):
@@ -94,11 +92,11 @@ class Application(QWidget):
         if not self.nameValidation(self.name):
             return
         if self.server_interface:
-            self.server_interface.closeConnection()
-        self.server_interface = si.serverInterface(self.nameEdit.text())
+            self.server_interface.close_connection()
+        self.server_interface = ServerInterface(self.nameEdit.text())
 
-        map_graph_json = self.server_interface.getMapLevel(0)
-        objects_map_graph_json = self.server_interface.getMapLevel(1)
+        map_graph_json = self.server_interface.get_map_by_level(0)
+        objects_map_graph_json = self.server_interface.get_map_by_level(1)
 
         try:
             graph = graph_from_json_string(map_graph_json)

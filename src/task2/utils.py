@@ -85,7 +85,7 @@ class Graph:
 
     @staticmethod
     def _distance(x1, y1, x2, y2):
-        return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+        return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
 
 def parse_map_from_dict(d):
@@ -121,4 +121,4 @@ def buildings_from_json_string(json_data):
 
 def graph_to_json(obj, filename):
     with open(filename) as f:
-        json.dump(obj, filename, default=parse_to_dict)
+        json.dump(obj, filename, default=parse_map_to_dict)

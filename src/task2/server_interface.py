@@ -6,7 +6,7 @@ def to_json(obj):
     return json.dumps(obj, separators=(",", ":"))
 
 
-class serverInterface:
+class ServerInterface:
     def __init__(self, name):
         self.opened_connection = Connector()
         self.opened_connection.connect()
@@ -14,7 +14,7 @@ class serverInterface:
             Action.LOGIN, to_json({"name": name}))
         msg = self.opened_connection.receive()
 
-    def closeConnection(self):
+    def close_connection(self):
         if self.opened_connection:
             self.opened_connection.send(Action.LOGOUT)
             msg = self.opened_connection.receive()
@@ -22,7 +22,7 @@ class serverInterface:
             self.opened_connection = None
             return msg
 
-    def getMapLevel(self, level):
+    def get_map_by_level(self, level):
         if self.opened_connection:
             if level in [0, 1, 10]:
                 self.opened_connection.send(
@@ -48,4 +48,4 @@ class serverInterface:
         # idx equal
 
     def __del__(self):
-        self.closeConnection()
+        self.close_connection()

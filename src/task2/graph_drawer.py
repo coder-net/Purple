@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QWidget, QLabel,
-                             QLineEdit,)
+                             QLineEdit, )
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
 
