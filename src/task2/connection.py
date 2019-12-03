@@ -45,7 +45,7 @@ class Connector:
     def __init__(self, address: "(SERVER_ADDRESS, SERVER_PORT)" = None):
         directory = os.path.dirname(os.path.abspath(__file__))
         if address is None:
-            with open(directory + r"\server_config.json") as json_data:
+            with open(os.path.join(directory, "server_config.json")) as json_data:
                 server_config = json.load(json_data)
                 address = server_config["SERVER_ADDRESS"], server_config["SERVER_PORT"]
         self.SERVER_ADDR = address[0]
