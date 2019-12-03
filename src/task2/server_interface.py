@@ -10,9 +10,10 @@ class serverInterface:
     def __init__(self, name):
         self.opened_connection = connection.Connector()
         self.opened_connection.connect()
-        self.opened_connection.send(connection.Action.LOGIN, to_json({"name": name}))
+        self.opened_connection.send(
+            connection.Action.LOGIN, to_json({"name": name}))
         msg = self.opened_connection.receive()
-            
+
     def closeConnection(self):
         if self.opened_connection:
             self.opened_connection.send(connection.Action.LOGOUT)
@@ -30,5 +31,6 @@ class serverInterface:
                 # msg[0] result check need
                 status_result = msg[0]
                 return ''.join(msg[1:])
+
     def __del__(self):
-        self.closeConnection()   
+        self.closeConnection()

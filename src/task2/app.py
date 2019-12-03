@@ -15,10 +15,10 @@ from graphDrawer import GraphDrawer, buildings_color_by_type, CustomLabel
 class Application(QWidget):
     def __init__(self):
         super().__init__()
+        self.server_interface = None
         self.initUI()
 
     def initUI(self):
-        # TODO: main window to center
         self.setWindowTitle('Graph visualization')
         self.resize(1200, 600)
         self.toCenter()
@@ -85,28 +85,20 @@ class Application(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def nameValidation(self, name):  # TODO need to add something more
+    def nameValidation(self, name):
         return len(name) > 0
 
     def enterTheGame(self):
-        # self.nameEdit.setText(QFileDialog.getOpenFileName()[0])
         self.error_label.hide()
         self.name = self.nameEdit.text()
         if not self.nameValidation(self.name):
             return
-
+        if self.server_interface:
+            self.server_interface.closeConnection()
         self.server_interface = si.serverInterface(self.nameEdit.text())
 
         map_graph_json = self.server_interface.getMapLevel(0)
         objects_map_graph_json = self.server_interface.getMapLevel(1)
-        #name = self.nameEdit.text()
-        # if not os.path.isfile(filename):
-        #   return
-
-        #_, extension = os.path.splitext(filename)
-        # if extension != '.json':
-        #    self.fileSelectError('Extension is incorrect. Must be ".json"')
-        #   return
 
         try:
             graph = graph_from_json_string(map_graph_json)
@@ -115,11 +107,7 @@ class Application(QWidget):
             self.graphWidget.setGraph(graph)
             self.graphWidget.setBuildings(buildings)
         except BaseException:
-            self.error_label('Incorrect structure of recieved map file')
-
-    def fileSelectError(self, msg):
-        self.error_label.show()
-        self.error_label.setText(msg)
+            self.error_label('Something bad. Try again')
 
 
 class LegendDrawer(QWidget):
@@ -139,21 +127,21 @@ class LegendDrawer(QWidget):
         painter.setPen(QPen(Qt.red, 2))
         painter.drawLine(QPoint(0, 0), QPoint(0, self.size().height()))
         painter.setPen(QPen(Qt.black, 1))
-        i=0
+        i = 0
         for building_type in buildings_color_by_type:
             point = self.points[i]
             x = point.x()
             y = point.y()
             painter.setBrush(QBrush(buildings_color_by_type[building_type]))
             painter.drawEllipse(x - self.r, y - self.r, 2 * self.r, 2 * self.r)
-            i+=1
+            i += 1
         painter.end()
 
     def initLabels(self):
         spacing = 10
         delta_x = self.r + spacing
         delta_y = delta_x + self.r  # if you change delta_x set delta_y = 2*self.r+spacing
-        i=0
+        i = 0
         for building_type in buildings_color_by_type:
             y = (i + 1) * delta_y
             self.points.append(QPoint(delta_x, y))
@@ -163,7 +151,7 @@ class LegendDrawer(QWidget):
                     self))
             self.labels[i].move(2 * delta_x, y - self.labels[i].height() / 2)
             self.labels[i].show()
-            i+=1
+            i += 1
 
 
 if __name__ == '__main__':

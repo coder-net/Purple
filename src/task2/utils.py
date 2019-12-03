@@ -74,7 +74,9 @@ class Graph:
         points = list(pos.values())
         for i in range(len(points)):
             for j in range(i + 1, len(points)):
-                shortest = min(shortest, Graph._distance(*points[i], *points[j]))
+                shortest = min(
+                    shortest, Graph._distance(
+                        *points[i], *points[j]))
         return shortest
 
     @staticmethod
@@ -100,18 +102,22 @@ def parse_map_to_dict(obj):
         d['name'] = obj.name
         return d
     else:
-        raise TypeError(f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
+        raise TypeError(
+            f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
 
 
 def graph_from_json_file(filename):
     with open(filename) as f:
         return json.load(f, object_hook=parse_map_from_dict)
-    
+
+
 def graph_from_json_string(json_data):
     return json.loads(json_data, object_hook=parse_map_from_dict)
 
+
 def buildings_from_json_string(json_data):
     return json.loads(json_data)
+
 
 def graph_to_json(obj, filename):
     with open(filename) as f:

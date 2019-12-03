@@ -3,9 +3,9 @@ from PyQt5.QtWidgets import (QWidget, QLabel,
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
 
-buildings_color_by_type = {'Town': Qt.red, 
-    'Market': Qt.green, 'Warehouse': Qt.darkBlue}
-buildings_name_by_number_type = ['Town','Market', 'Warehouse']
+buildings_color_by_type = {'Town': Qt.red,
+                           'Market': Qt.green, 'Warehouse': Qt.darkBlue}
+buildings_name_by_number_type = ['Town', 'Market', 'Warehouse']
 
 
 class GraphDrawer(QWidget):
@@ -141,7 +141,7 @@ class GraphDrawer(QWidget):
         for building in self.buildings['posts']:
             if building['point_idx'] == idx:
                 name = buildings_name_by_number_type[building['type'] - 1]
-                color=buildings_color_by_type[name]
+                color = buildings_color_by_type[name]
         painter.setBrush(QBrush(color))
 
     def wheelEvent(self, event):
