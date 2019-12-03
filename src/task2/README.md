@@ -22,6 +22,7 @@ python3 app.py
 
 ### Controls
 
-* scaling - `by mouse scrolling`
-* moving - `by mouse dragging`
+* map scaling - `by mouse scrolling`
+* map moving - `by mouse dragging`
+* 'Legend' panel sliding  -`by mouse click near red line and sliding it`
 
