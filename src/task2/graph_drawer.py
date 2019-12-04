@@ -42,12 +42,11 @@ class GraphDrawer(QWidget):
 
     # TODO, change
     def initLabels(self):
-        point_diameter = min(int(self.padding * 1.5),
-                int(self.graph.shortest_edge / 2 * min(self.height(), self.width())))
+        Point.radius = self.pointRadius
         for point in self.graph.points:
             building = Crossroad(point.idx)
             self.idx_to_building[point.idx] = building
-            self.idx_to_widget[point.idx] = Point(point.idx, point_diameter // 2, self)
+            self.idx_to_widget[point.idx] = Point(point.idx, self)
             self.idx_to_widget[point.idx].setBuilding(building)
         color = self.palette().color(self.backgroundRole()).name()
         for edge in self.graph.edges:
@@ -69,6 +68,13 @@ class GraphDrawer(QWidget):
         for label in self.edges_to_weights.values():
             label.setVisible(flag)
         self.update()
+
+    @property
+    def pointRadius(self):
+        return min(
+            int(self.padding * 1.9),
+            int(self.graph.shortest_edge / 2 * min(self.height(), self.width()))
+        ) // 2
 
     def setGraph(self, graph):
         self.graph = graph
@@ -106,7 +112,7 @@ class GraphDrawer(QWidget):
 
             # TODO, delete this
             # choose suitable node size
-            d = min(int(self.padding * 1.5),
+            d = min(int(self.padding * 1.9),
                     int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
             # choose suitable font size
             weight_font_size = int(1 / self.graph.biggest_idx_len * d)
@@ -158,3 +164,7 @@ class GraphDrawer(QWidget):
 
     def mouseReleaseEvent(self, QMouseEvent):
         self.pressing = False
+
+    def resizeEvent(self, a0) -> None:
+        if self.graph:
+            Point.radius = self.pointRadius

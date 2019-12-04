@@ -18,31 +18,34 @@ class CustomLabel(QLabel):
 
 
 class Point(QWidget):
-    def __init__(self, idx, radius, parent=None, font_size=None):
+    radius = 50
+
+    def __init__(self, idx, parent=None, font_size=None):
         super().__init__(parent)
 
         self.town_idx = idx
         self._building = None
         self.font_coefficient = 1.5
         self.idx_label = CustomLabel(str(idx), self)
-        self._outer_radius = radius
-        self._inner_radius = int(radius * 0.8)  # ? property
-        self._font_size = font_size or int(1 / len(str(idx)) * self._inner_radius * self.font_coefficient)
         self._scale = 0
-        self.thickness = 2
+        self._thickness = 2
         self.show()
 
     @property
+    def thickness(self):
+        return int(self.scale * self._thickness)
+
+    @property
     def outer_radius(self):
-        return int(self.scale * self._outer_radius) + 1
+        return int(self.scale * self.radius) + 1
 
     @property
     def inner_radius(self):
-        return int(self.scale * self._inner_radius) + 1
+        return int(self.scale * self.radius * 0.8) + 1
 
     @property
     def font_size(self):
-        return int(self.scale * self._font_size) + 1
+        return int(self.scale * 1 / len(str(self.town_idx)) * self.radius * 0.8 * self.font_coefficient)
 
     @property
     def scale(self):
@@ -61,7 +64,7 @@ class Point(QWidget):
         painter = QPainter()
         painter.begin(self)
 
-        painter.setPen(QPen(Qt.black, int(self.scale * self.thickness)))
+        painter.setPen(QPen(Qt.black, self.thickness))
 
         painter.drawEllipse(self.thickness, self.thickness, 2 * outer_radius, 2 * outer_radius)
 
