@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QLabel,
                              QLineEdit, )
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from PyQt5.QtCore import Qt, QPoint
+from data_models import Crossroad, Town, Market, Warehouse
 
 
 buildings_to_info = {
@@ -11,6 +12,13 @@ buildings_to_info = {
     3: ('Warehouse', Qt.darkRed),
 }
 
+buildings_to_type = {
+    0: Crossroad,
+    1: Town,
+    2: Market,
+    3: Warehouse
+}
+
 
 class GraphDrawer(QWidget):
     def __init__(self):
@@ -18,8 +26,8 @@ class GraphDrawer(QWidget):
         self.graph = None
         self.buildings = None
         self.padding = 50
+        self.idx_to_widget = {}
         self.idx_to_building = {}
-        self.points_to_labels = {}
         self.edges_to_weights = {}
         self.zoom = 1
         self.delta = QPoint(0, 0)
@@ -40,10 +48,13 @@ class GraphDrawer(QWidget):
 
     # TODO, change
     def initLabels(self):
-        d = min(int(self.padding * 1.5),
+        point_diameter = min(int(self.padding * 1.5),
                 int(self.graph.shortest_edge / 2 * min(self.height(), self.width())))
         for point in self.graph.points:
-            self.idx_to_building[point.idx] = Town(point.idx, d // 2, self)
+            building = Crossroad(point.idx)
+            self.idx_to_building[point.idx] = building
+            self.idx_to_widget[point.idx] = Point(point.idx, point_diameter // 2, self)
+            self.idx_to_widget[point.idx].setBuilding(building)
         color = self.palette().color(self.backgroundRole()).name()
         for edge in self.graph.edges:
             self.edges_to_weights[edge.idx] = CustomLabel(
@@ -52,9 +63,9 @@ class GraphDrawer(QWidget):
             self.edges_to_weights[edge.idx].show()
 
     def deleteLabels(self):
-        for widget in self.idx_to_building.values():
+        for widget in self.idx_to_widget.values():
             widget.setParent(None)
-        self.idx_to_building.clear()
+        self.idx_to_widget.clear()
         for label in self.edges_to_weights.values():
             label.setParent(None)
         self.edges_to_weights.clear()
@@ -72,13 +83,16 @@ class GraphDrawer(QWidget):
         self.is_visible_weight = True
         self.update()
 
-    # TODO, change
+    # TODO, maybe later don't recreate new building, if type wasn't be changed
     def setBuildings(self, buildings):
         self.buildings = buildings
         for building in self.buildings['posts']:
             idx = building['point_idx']
-            if idx in self.idx_to_building:
-                self.idx_to_building[idx].setTownInfo(town_type=building['type'])
+            if idx in self.idx_to_widget:
+                building_type = buildings_to_type[building['type']]
+                new_building = building_type.from_dict(building)
+                self.idx_to_widget[idx].setBuilding(new_building)
+                self.idx_to_building[idx] = new_building
 
     def paintEvent(self, e):
         if self.graph:
@@ -122,15 +136,11 @@ class GraphDrawer(QWidget):
                     self.zoom * (y1 + (y2 - y1) // 2 + self.delta.y()) - lbl.height() // 2
                 )
 
-            # painter.setPen(QPen(Qt.gray))
-            #
-            # painter.setBrush(QBrush(Qt.gray))
-
             for idx, (x, y) in pos.items():
                 x = int(x * map_x) + self.padding
                 y = int(y * map_y) + self.padding
 
-                building = self.idx_to_building[idx]
+                building = self.idx_to_widget[idx]
                 building.scale = self.zoom
                 building.move(self.zoom * (x + self.delta.x()) - building.width() // 2,
                               self.zoom * (y + self.delta.y()) - building.height() // 2)
@@ -169,12 +179,12 @@ class CustomLabel(QLabel):
         self.resize(self.sizeHint())
 
 
-class Town(QWidget):
+class Point(QWidget):
     def __init__(self, idx, radius, parent=None, font_size=None):
         super().__init__(parent)
 
         self.town_idx = idx
-        self.town_type = 0
+        self._building = None
         self.font_coefficient = 1.5
         self.idx_label = CustomLabel(str(idx), self)
         self._outer_radius = radius
@@ -182,7 +192,6 @@ class Town(QWidget):
         self._font_size = font_size or int(1 / len(str(idx)) * self._inner_radius * self.font_coefficient)
         self._scale = 0
         self.thickness = 2
-        self.setTownInfo()
         self.show()
 
     @property
@@ -214,12 +223,11 @@ class Town(QWidget):
         painter = QPainter()
         painter.begin(self)
 
-        painter.setPen(QPen(Qt.black, self.thickness))
+        painter.setPen(QPen(Qt.black, int(self.scale * self.thickness)))
 
         painter.drawEllipse(self.thickness, self.thickness, 2 * outer_radius, 2 * outer_radius)
 
-        _, color = buildings_to_info[self.town_type]
-        painter.setBrush(color)
+        painter.setBrush(self._building.color)
 
         diff = outer_radius - inner_radius
         painter.drawEllipse(diff + self.thickness, diff + self.thickness, 2 * inner_radius, 2 * inner_radius)
@@ -229,8 +237,8 @@ class Town(QWidget):
 
         painter.end()
 
-    def setTownInfo(self, idx=None, town_type=None,):
-        self.town_idx = idx or self.town_idx
-        self.town_type = town_type or self.town_type
+    def setBuilding(self, building):
+        self._building = building
+        self.setToolTip(str(self._building))
 
-        self.setToolTip(f'Idx: {self.town_idx}\nType: {buildings_to_info[self.town_type][0]}')
+
