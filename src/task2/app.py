@@ -93,6 +93,7 @@ class Application(QWidget):
             return
         if self.server_interface:
             self.server_interface.close_connection()
+            
         self.server_interface = ServerInterface(self.nameEdit.text())
 
         map_graph_json = self.server_interface.get_map_by_level(0)
@@ -104,8 +105,8 @@ class Application(QWidget):
             self.graphWidget.setWeightLabelsVisible(False)
             self.graphWidget.setGraph(graph)
             self.graphWidget.setBuildings(buildings)
-        except BaseException:
-            self.error_label('Something bad. Try again')
+        except TypeError as error_:
+            self.error_label(str(error_))
 
 
 class LegendDrawer(QWidget):

@@ -12,14 +12,14 @@ class ServerInterface:
         self.opened_connection.connect()
         self.opened_connection.send(
             Action.LOGIN, to_json({"name": name}))
-        msg = self.opened_connection.receive()
-
+        #msg = self.opened_connection.receive()
+        # may be needed in future
+        
     def close_connection(self):
         if self.opened_connection:
             self.opened_connection.send(Action.LOGOUT)
             msg = self.opened_connection.receive()
             self.opened_connection.close()
-            self.opened_connection = None
             return msg
 
     def get_map_by_level(self, level):
