@@ -111,9 +111,9 @@ class GraphDrawer(QWidget):
             pos = self.graph.pos
 
             # choose suitable font size
-            weight_font_size = int(1 / self.graph.biggest_idx_len * self.pointRadius) + 1
+            weight_font_size = int(1 / self.graph.biggest_idx_len * self.pointRadius * self.zoom) + 1
 
-            painter.setPen(QPen(Qt.black, 1 / self.zoom))
+            painter.setPen(QPen(Qt.black, 1))
 
             for edge in self.graph.edges:
                 p1, p2 = edge.points

@@ -45,7 +45,7 @@ class Point(QWidget):
 
     @property
     def font_size(self):
-        return int(self.scale * 1 / len(str(self.town_idx)) * self.radius * 0.8 * self.font_coefficient)
+        return int(self.scale * 1 / len(str(self.town_idx)) * self.radius * 0.8 * self.font_coefficient) + 1
 
     @property
     def scale(self):
