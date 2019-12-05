@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Point:
     idx: int
+    info = None
 
 
 @dataclass
@@ -18,13 +19,16 @@ class Edge:
 
 class Graph:
     def __init__(self, points, edges, name='Untitled'):
-        self.points = [Point(point['idx']) for point in points]
-        self.edges = [Edge(e['idx'], e['length'], e['points']) for e in edges]
+        self.points = points
+        self.edges = edges
         self.name = name
         self.nxgraph = Graph.init_nxgraph(self.points, self.edges)
         self.pos = Graph.normalize_pos(Graph.choose_layout(self.nxgraph))
         self.shortest_edge = Graph.shortest_edge(self.pos)
         self.biggest_idx_len = Graph.biggest_idx_len(self.points)
+
+    def update_point(self, idx, info):
+        self.points[idx].info = info
 
     @staticmethod
     def choose_layout(g):
@@ -47,8 +51,8 @@ class Graph:
     @staticmethod
     def init_nxgraph(points, edges):
         g = nx.Graph()
-        g.add_nodes_from(point.idx for point in points)
-        g.add_edges_from(edge.points for edge in edges)
+        g.add_nodes_from(point.idx for point in points.values())
+        g.add_edges_from(edge.points for edge in edges.values())
         return g
 
     @staticmethod
@@ -86,39 +90,3 @@ class Graph:
     @staticmethod
     def _distance(x1, y1, x2, y2):
         return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
-
-
-def parse_map_from_dict(d):
-    if 'points' in d and 'lines' in d and 'name' in d:
-        return Graph(d['points'], d['lines'], d['name'])
-    return d
-
-
-def parse_map_to_dict(obj):
-    if isinstance(obj, Graph):
-        d = dict()
-        d['points'] = obj.points
-        d['lines'] = obj.edges
-        d['name'] = obj.name
-        return d
-    else:
-        raise TypeError(
-            f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
-
-
-def graph_from_json_file(filename):
-    with open(filename) as f:
-        return json.load(f, object_hook=parse_map_from_dict)
-
-
-def graph_from_json_string(json_data):
-    return json.loads(json_data, object_hook=parse_map_from_dict)
-
-
-def buildings_from_json_string(json_data):
-    return json.loads(json_data)
-
-
-def graph_to_json(obj, filename):
-    with open(filename) as f:
-        json.dump(obj, filename, default=parse_map_to_dict)
