@@ -110,14 +110,8 @@ class GraphDrawer(QWidget):
             map_y = self.height() - 2 * self.padding
             pos = self.graph.pos
 
-            # TODO, delete this
-            # choose suitable node size
-            d = min(int(self.padding * 1.9),
-                    int(self.graph.shortest_edge / 2 * min(map_x, map_y)))
             # choose suitable font size
-            weight_font_size = int(1 / self.graph.biggest_idx_len * d)
-            if weight_font_size <= 0:
-                weight_font_size = 1
+            weight_font_size = int(1 / self.graph.biggest_idx_len * self.pointRadius) + 1
 
             painter.setPen(QPen(Qt.black, 1 / self.zoom))
 
