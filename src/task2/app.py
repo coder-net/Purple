@@ -7,7 +7,8 @@ from PyQt5.QtCore import Qt, QPoint
 from server_interface import ServerInterface
 from utils import graph_from_json_string
 from utils import buildings_from_json_string
-from graph_drawer import GraphDrawer, buildings_color_by_type, CustomLabel
+from graph_drawer import GraphDrawer, buildings_to_type
+from drawer_utils import CustomLabel
 
 
 class Application(QWidget):
@@ -110,7 +111,6 @@ class Application(QWidget):
 
 
 class LegendDrawer(QWidget):
-
     def __init__(self, main_window):
         super().__init__()
         self.points = []
@@ -123,15 +123,16 @@ class LegendDrawer(QWidget):
     def paintEvent(self, e):
         painter = QPainter()
         painter.begin(self)
-        painter.setPen(QPen(Qt.red, 2))
+        painter.setPen(QPen(Qt.darkGray, 5))
         painter.drawLine(QPoint(0, 0), QPoint(0, self.size().height()))
         painter.setPen(QPen(Qt.black, 1))
         i = 0
-        for building_type in buildings_color_by_type:
+        for building_type in buildings_to_type.values():
             point = self.points[i]
             x = point.x()
             y = point.y()
-            painter.setBrush(QBrush(buildings_color_by_type[building_type]))
+            color = building_type.color
+            painter.setBrush(QBrush(color))
             painter.drawEllipse(x - self.r, y - self.r, 2 * self.r, 2 * self.r)
             i += 1
         painter.end()
@@ -141,12 +142,12 @@ class LegendDrawer(QWidget):
         delta_x = self.r + spacing
         delta_y = delta_x + self.r  # if you change delta_x set delta_y = 2*self.r+spacing
         i = 0
-        for building_type in buildings_color_by_type:
+        for building_type in buildings_to_type.values():
             y = (i + 1) * delta_y
             self.points.append(QPoint(delta_x, y))
             self.labels.append(
                 CustomLabel(
-                    building_type,
+                    building_type.__name__,
                     self))
             self.labels[i].move(2 * delta_x, y - self.labels[i].height() / 2)
             self.labels[i].show()
