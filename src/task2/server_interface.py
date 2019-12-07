@@ -12,7 +12,7 @@ class ServerInterface:
         self.opened_connection.connect()
         self.opened_connection.send(
             Action.LOGIN, to_json({"name": name}))
-        #msg = self.opened_connection.receive()
+        msg = self.opened_connection.receive()
         # may be needed in future
         
     def close_connection(self):

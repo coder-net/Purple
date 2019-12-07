@@ -124,6 +124,66 @@ class RequestError(GameConnectionError):
     pass
 
 
+def connector_demonstration():
+    try:
+        def to_json(obj):
+            return json.dumps(obj, separators=(",", ":"))
+
+        def print_result(action, msg, sep=" "):
+            print(f"{action.name} {msg[0].name}:{sep}{msg[1]}")
+
+        cn = Connector()
+        cn.connect()
+
+        cn.send(Action.LOGIN, to_json({"name": "Charon"}))
+        msg = cn.receive()
+        print_result(Action.LOGIN, msg, "\n")
+
+        cn.send(Action.MAP, to_json({"layer": 0}))
+        msg = cn.receive()
+        print_result(Action.MAP, msg, "\n")
+
+        cn.send(Action.MAP, to_json({"layer": 1}))
+        msg = cn.receive()
+        print_result(Action.MAP, msg, "\n")
+
+        cn.send(Action.MAP, to_json({"layer": 10}))
+        msg = cn.receive()
+        print_result(Action.MAP, msg, "\n")
+
+        cn.send(Action.LOGOUT)
+        msg = cn.receive()
+        print_result(Action.LOGOUT, msg)
+    finally:
+        cn.close()
+
+
+def send_some_requests():
+    try:
+        cn = Connector()
+        cn.connect()
+
+        player = cn.request(Action.LOGIN, dict(name="John"))
+        print(player.keys())
+
+        static_map = cn.request(Action.MAP, dict(layer=0))
+        print(static_map.keys())
+
+        turn = cn.request(Action.TURN)
+        print("turn:", turn)
+
+        cn.request(Action.LOGOUT)
+        print("logout")
+        cn.close()
+
+        cn.connect()
+        cn.request(Action.LOGIN, dict(name="John"))
+        l10 = cn.request(Action.MAP, dict(layer=10))
+        cn.request(Action.LOGOUT)
+    finally:
+        cn.close()
+
+
 if __name__ == "__main__":
     connector_demonstration()
     send_some_requests()
